@@ -13,8 +13,14 @@ namespace VoidTools
             string projectRoot = Directory.GetParent(Application.dataPath).FullName;
             string fullPath = Path.GetFullPath(Path.Combine(projectRoot, assetPath));
 
-            EditorGUIUtility.systemCopyBuffer = fullPath;
-            Debug.Log($"[Copy Full Path] Copied: {fullPath}");
+            // For files, copy the containing folder only (strip file name + extension).
+            // For folders, copy the folder's own full path as-is.
+            string result = AssetDatabase.IsValidFolder(assetPath)
+                ? fullPath
+                : Path.GetDirectoryName(fullPath);
+
+            EditorGUIUtility.systemCopyBuffer = result;
+            Debug.Log($"[Copy Full Path] Copied: {result}");
         }
 
         [MenuItem("VoidGardens/Copy Full Path", true)]
