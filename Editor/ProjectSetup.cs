@@ -46,6 +46,9 @@ namespace VoidTools
             const string pathToReadme = "Assets/Readme.asset";
             DeleteAsset(pathToReadme);
             Refresh();
+           
+            // Optional: Disable Domain Reload
+            EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
         }
     }
 
@@ -59,94 +62,76 @@ namespace VoidTools
         }
     }
 
-    static class Packages
-    {
+    static class Packages {
         static AddRequest request;
-        static Queue<string> packageToInstall = new Queue<string>();
+        static Queue<string> packagesToInstall = new Queue<string>();
 
-        static async void StartNextPackageInstallation()
-        {
-            request = Client.Add(packageToInstall.Dequeue());
+        public static void InstallPackages(string[] packages) {
+            foreach (var package in packages) {
+                packagesToInstall.Enqueue(package);
+            }
 
-            while (!request.IsCompleted) await Task.Delay(10);
-
-            if (request.Status == StatusCode.Success) Debug.Log("Installed: " + request.Result.packageId);
-            else if (request.Status >= StatusCode.Failure) Debug.LogError(request.Error.message);
-                
-            if (packageToInstall.Count > 0)
-            {
-                await Task.Delay(1000);
+            if (packagesToInstall.Count > 0) {
                 StartNextPackageInstallation();
             }
         }
 
-        public static void InstallPackages(string[] packages)
-        {
-            foreach (string package in packages)
-            {
-                packageToInstall.Enqueue(package);
-            }
+        static async void StartNextPackageInstallation() {
+            request = Client.Add(packagesToInstall.Dequeue());
+            
+            while (!request.IsCompleted) await Task.Delay(10);
+            
+            if (request.Status == StatusCode.Success) Debug.Log("Installed: " + request.Result.packageId);
+            else if (request.Status >= StatusCode.Failure) Debug.LogError(request.Error.message);
 
-            if (packageToInstall.Count > 0)
-            {
+            if (packagesToInstall.Count > 0) {
+                await Task.Delay(1000);
                 StartNextPackageInstallation();
             }
         }
     }
 
-    static class Folders
-    {
-        public static void Delete(string folderName)
-        {
-            string pathToDelete = $"Assets/{folderName}";
+    static class Folders {
+        public static void Create(string root, params string[] folders) {
+            var fullpath = Combine(Application.dataPath, root);
+            if (!Directory.Exists(fullpath)) {
+                Directory.CreateDirectory(fullpath);
+            }
 
-            if (IsValidFolder(pathToDelete))
-            {
-                DeleteAsset(pathToDelete);
+            foreach (var folder in folders) {
+                CreateSubFolders(fullpath, folder);
             }
         }
-
-        public static void Move(string newParent, string folderName)
-        {
-            string sourcePath = $"Assets/{folderName}";
-            if (IsValidFolder(sourcePath))
-            {
-                string destinationPath = $"Assets/{newParent}/{folderName}";
-                string error = MoveAsset(sourcePath, destinationPath);
-
-                if (!string.IsNullOrEmpty(error))
-                {
-                    Debug.LogError($"Fialed to move {folderName}: {error}");
-                }
-            }
-        }
-
-        public static void CreateSubFolders(string rootPath, string folderHierarchy)
-        {
+        
+        static void CreateSubFolders(string rootPath, string folderHierarchy) {
             var folders = folderHierarchy.Split('/');
             var currentPath = rootPath;
 
-            foreach (var folder in folders)
-            {
+            foreach (var folder in folders) {
                 currentPath = Combine(currentPath, folder);
-                if (!Directory.Exists(currentPath))
-                {
+                if (!Directory.Exists(currentPath)) {
                     Directory.CreateDirectory(currentPath);
                 }
             }
         }
+        
+        public static void Move(string newParent, string folderName) {
+            var sourcePath = $"Assets/{folderName}";
+            if (IsValidFolder(sourcePath)) {
+                var destinationPath = $"Assets/{newParent}/{folderName}";
+                var error = MoveAsset(sourcePath, destinationPath);
 
-        public static void Create(string root, params string[] folders)
-        {
-            var fullPath = Combine(Application.dataPath, root);
-            if (!Directory.Exists(fullPath))
-            {
-                Directory.CreateDirectory(fullPath);
+                if (!string.IsNullOrEmpty(error)) {
+                    Debug.LogError($"Failed to move {folderName}: {error}");
+                }
             }
+        }
+        
+        public static void Delete(string folderName) {
+            var pathToDelete = $"Assets/{folderName}";
 
-            foreach (var folder in folders)
-            {
-                
+            if (IsValidFolder(pathToDelete)) {
+                DeleteAsset(pathToDelete);
             }
         }
     }
