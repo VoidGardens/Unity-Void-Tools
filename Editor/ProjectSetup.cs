@@ -14,13 +14,13 @@ namespace VoidTools
 {    
     public static class ProjectSetup
     {
-        [MenuItem("VoidGardnes/Project Setup/Import Essential Assets")]
+        [MenuItem("VoidGardens/Project Setup/Import Essential Assets")]
         static void ImportEsstinals()
         {
             
         }
 
-        [MenuItem("VoidGardnes/Project Setup/Install Essential Packages")]
+        [MenuItem("VoidGardens/Project Setup/Install Essential Packages")]
         static void ImportPackages()
         {
             Packages.InstallPackages(new[]
@@ -29,7 +29,7 @@ namespace VoidTools
             });
         }
 
-        [MenuItem("VoidGardnes/Project Setup/Create Folders")]
+        [MenuItem("VoidGardens/Project Setup/Create Folders")]
         static void CreateFolders()
         {
             Folders.Create("_Project", "Animation", "Art", "Art/Materials", "Art/FBX", "Art/Textures", "Prefabs", "Scripts", "Scripts/Runtime", "Scripts/Editor");
