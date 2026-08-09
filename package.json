@@ -1,0 +1,10 @@
+{
+  "name": "com.voidgardens.voidtools",
+  "version": "1.0.0",
+  "displayName": "Void Tools",
+  "description": "Collection of usefull small tools",
+  "unity": "2019.1",
+  "dependencies": {
+
+ }
+}
